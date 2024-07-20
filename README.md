@@ -1,4 +1,4 @@
-# equation-solver-deployment-pipeline
+# Equation Dolver Deployment Pipeline
 The idea is to create an AWS CodePipeline to deploy changes to the equation_solver and dockerize_equation_solver repositories. At a high level, we aim to create 
 a CodePipeline that has the following resources:
 - Integrate GitHub with AWS CodePipeline,
