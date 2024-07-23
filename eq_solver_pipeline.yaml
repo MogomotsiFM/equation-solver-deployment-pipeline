@@ -1,0 +1,148 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "A pipeline to deploy the equation solver code."
+
+
+Parameters:
+  S3ArtifactsStore:
+    Description: "The S3 bucket used to store CodePipeline artifacts."
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /portfolio/CICD/s3-artifacts-bucket
+
+
+Resources:  
+  EqnSolverImageBuilder:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      ConcurrentBuildLimit: 1
+      Description: "Builds the eqn solver docker image"
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        EnvironmentVariables: 
+          - 
+            Name: AWS_DEFAULT_REGION
+            Value: !Ref AWS::Region
+          -
+            Name: AWS_ACCOUNT_ID
+            Value: !Ref AWS::AccountId
+          -
+            Name: IMAGE_TAG
+            Value: test-image
+        Image: "aws/codebuild/amazonlinux2-x86_64-standard:5.0"
+        ImagePullCredentialsType: CODEBUILD
+        PrivilegedMode: true
+        Type: LINUX_CONTAINER
+      LogsConfig:
+        CloudWatchLogs:
+          GroupName: EqnSolverImageBuilderLogs
+          Status: ENABLED
+          StreamName: eqn-solver-builder
+      Name: EquationSolverImageBuilderProject
+      #ResourceAccessRole: "String"
+      Source: 
+        Type: CODEPIPELINE
+      ServiceRole: !Sub "arn:aws:iam::${AWS::AccountId}:role/service-role/codebuild-equation_solver-service-role" # Required
+      Visibility: PRIVATE
+
+  # The connection has to be enabled in the AWS console. Otherwise the pipeline will never be triggered.
+  EqnSolverPipelineGitHubConnection:
+    Type: AWS::CodeConnections::Connection
+    Properties:
+      ConnectionName: eqn_solver_github_connection # Required
+      ProviderType: GitHub
+      Tags: 
+        - Key: Project
+          Value: EquationSolverDeploymentPipeline
+
+  EqnSolverPipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      ArtifactStore:
+        Location: !Ref S3ArtifactsStore
+        Type: "S3"
+      ExecutionMode: "QUEUED"
+      Name: "EquationSolverDeploymentPipeline"
+      PipelineType: "V2"
+      RestartExecutionOnUpdate: false
+      RoleArn: !Sub "arn:aws:iam::${AWS::AccountId}:role/service-role/AWSCodePipelineServiceRole-us-east-1-SimplePythonAppReleasePipe" # Required
+      Stages: # Required
+        - 
+          Actions:
+            - 
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeStarSourceConnection
+                Version: "1"
+              Configuration:
+                ConnectionArn: !GetAtt EqnSolverPipelineGitHubConnection.ConnectionArn
+                FullRepositoryId: "MogomotsiFM/equation_solver"
+                BranchName: "main"
+                OutputArtifactFormat: "CODE_ZIP"
+              InputArtifacts: []
+              Name: EquationSolverSourceAction
+              Namespace: EquationSolverSource0
+              OutputArtifacts:
+                - Name: EqnSolverSourceCode
+              Region: !Ref AWS::Region
+            - 
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeStarSourceConnection
+                Version: "1"
+              Configuration:
+                ConnectionArn: !GetAtt EqnSolverPipelineGitHubConnection.ConnectionArn
+                FullRepositoryId: "MogomotsiFM/docker_equation_solver"
+                BranchName: "main"
+                OutputArtifactFormat: "CODE_ZIP"
+              InputArtifacts: []
+              Name: DockerizeEqnSolverSourceAction
+              Namespace: EquationSolverSource1
+              OutputArtifacts:
+                - Name: SourceArtifact
+              Region: !Ref AWS::Region
+          Name: EquationSolverSource
+        -
+          Actions:
+            - ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: "1"
+              Configuration:
+                ProjectName: !Ref EqnSolverImageBuilder
+              InputArtifacts:
+                - Name: SourceArtifact
+              Name: BuildEquationSolverDockerImage
+              Namespace: EquationSolverBuilder
+              OutputArtifacts:
+                - Name: EquationSolverDockerImage
+          Name: BuildEquationSolverImage
+      Tags: 
+        - Key: Project
+          Value: EquationSolver
+      Triggers: 
+        - 
+          GitConfiguration:
+            Push:
+              - 
+                FilePaths:
+                  Excludes:
+                    - '**/README.md'
+                    - '**/LICENSE'
+            SourceActionName: EquationSolverSourceAction
+          ProviderType: CodeStarSourceConnection
+        - 
+          GitConfiguration:
+            Push:
+              - 
+                FilePaths:
+                  Excludes:
+                    - '**/README.md'
+                    - '**/LICENSE'
+            SourceActionName: DockerizeEqnSolverSourceAction
+          ProviderType: CodeStarSourceConnection
+
+
