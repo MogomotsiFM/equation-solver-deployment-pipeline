@@ -1,0 +1,117 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "A pipeline to deploy the equation solver code."
+
+
+Parameters:
+  S3ArtifactsStore:
+    Description: "The S3 bucket used to store CodePipeline artifacts."
+    Type: String
+  CloudWatchLogsGroupName:
+    Type: String
+    Default: EqnSolverImageBuilderLogs
+
+
+Resources:
+  ImageBuilderRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument: #"JSON" # Required
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: Allow
+            Principal: 
+              Service: codebuild.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Description: "The role assumed by AWS CodeBuild to perform its tasks."
+      Policies: 
+        - 
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - 
+                Effect: Allow
+                Action:
+                  - "s3:Get*"
+                Resource:
+                  - !Sub "arn:aws:s3:::${S3ArtifactsStore}/*"
+                #Condition:
+                #  StringEquals:
+                #    "AWS::SourceAccount": !Ref AWS::AccountId
+          PolicyName: "EqnSolverImageBuilderLimitedS3Access"
+        -
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - 
+                Effect: Allow
+                Action:
+                  - "s3:List*"
+                Resource:
+                  - !Sub "arn:aws:s3:::${S3ArtifactsStore}"
+                #Condition:
+                #  StringEquals:
+                #    "AWS::SourceAccount": !Ref AWS::AccountId
+          PolicyName: "EqnSolverImageBuilderLimitedS3Access2"
+        -
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - 
+                Effect: Allow
+                Action:
+                  #- "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource:
+                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:${CloudWatchLogsGroupName}:*"
+          PolicyName: "CloudWatchFullAccess"
+        -
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - 
+                Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                Resource: "*"
+          PolicyName: "CloudWatchFullAccess0"
+        - 
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - 
+                Effect: Allow
+                Action:
+                  - "codebuild:CreateReportGroup"
+                  - "codebuild:CreateReport"
+                  - "codebuild:UpdateReport"
+                  - "codebuild:BatchPutTestCases"
+                  - "codebuild:BatchPutCodeCoverages"
+                Resource:
+                  - !Sub "arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/*"
+          PolicyName: CodeBuildLimitedAccess
+        - 
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - 
+                Effect: Allow
+                Action:
+                  - "ecr:BatchCheckLayerAvailability"
+                  - "ecr:CompleteLayerUpload"
+                  - "ecr:GetAuthorizationToken"
+                  - "ecr:InitiateLayerUpload"
+                  - "ecr:PutImage"
+                  - "ecr:UploadLayerPart"
+                Resource: "*"
+          PolicyName: "WriteToECR"
+      RoleName: EqnSolverImageBuilderRole
+      Tags:
+        - Key: Project
+          Value: EquationSolver
+
+Outputs:
+  EqnSolverImageBuilderRole:
+    Value: !GetAtt ImageBuilderRole.Arn

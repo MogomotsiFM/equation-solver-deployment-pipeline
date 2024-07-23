@@ -10,167 +10,35 @@ Parameters:
   CloudWatchLogsGroupName:
     Type: String
     Default: EqnSolverImageBuilderLogs
+  ImageBuilderRoleURL:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /portfolio/CICD/image-builder-role
+  PipelineRoleURL:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /portfolio/CICD/pipeline-role
 
 
 Resources: 
-  ImageBuilderRole:
-    Type: AWS::IAM::Role
+  EqnSolverImageBuilderRole:
+    Type: AWS::CloudFormation::Stack
     Properties:
-      AssumeRolePolicyDocument: #"JSON" # Required
-        Version: "2012-10-17"
-        Statement:
-          -
-            Effect: Allow
-            Principal: 
-              Service: codebuild.amazonaws.com
-            Action:
-              - "sts:AssumeRole"
-      Description: "The role assumed by AWS CodeBuild to perform its tasks."
-      Policies: 
-        - 
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - 
-                Effect: Allow
-                Action:
-                  - "s3:Get*"
-                Resource:
-                  - !Sub "arn:aws:s3:::${S3ArtifactsStore}/*"
-                #Condition:
-                #  StringEquals:
-                #    "AWS::SourceAccount": !Ref AWS::AccountId
-          PolicyName: "EqnSolverImageBuilderLimitedS3Access"
-        -
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - 
-                Effect: Allow
-                Action:
-                  - "s3:List*"
-                Resource:
-                  - !Sub "arn:aws:s3:::${S3ArtifactsStore}"
-                #Condition:
-                #  StringEquals:
-                #    "AWS::SourceAccount": !Ref AWS::AccountId
-          PolicyName: "EqnSolverImageBuilderLimitedS3Access2"
-        -
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - 
-                Effect: Allow
-                Action:
-                  #- "logs:CreateLogGroup"
-                  - "logs:CreateLogStream"
-                  - "logs:PutLogEvents"
-                Resource:
-                  - !Sub "arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:${CloudWatchLogsGroupName}:*"
-          PolicyName: "CloudWatchFullAccess"
-        -
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - 
-                Effect: Allow
-                Action:
-                  - "logs:CreateLogGroup"
-                Resource: "*"
-          PolicyName: "CloudWatchFullAccess0"
-        - 
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - 
-                Effect: Allow
-                Action:
-                  - "codebuild:CreateReportGroup"
-                  - "codebuild:CreateReport"
-                  - "codebuild:UpdateReport"
-                  - "codebuild:BatchPutTestCases"
-                  - "codebuild:BatchPutCodeCoverages"
-                Resource:
-                  - !Sub "arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/*"
-          PolicyName: CodeBuildLimitedAccess
-        - 
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - 
-                Effect: Allow
-                Action:
-                  - "ecr:BatchCheckLayerAvailability"
-                  - "ecr:CompleteLayerUpload"
-                  - "ecr:GetAuthorizationToken"
-                  - "ecr:InitiateLayerUpload"
-                  - "ecr:PutImage"
-                  - "ecr:UploadLayerPart"
-                Resource: "*"
-          PolicyName: "WriteToECR"
-      RoleName: EqnSolverImageBuilderRole
-      Tags:
+      Parameters:
+         S3ArtifactsStore: !Ref S3ArtifactsStore
+         CloudWatchLogsGroupName: !Ref CloudWatchLogsGroupName
+      Tags: 
         - Key: Project
-          Value: EquationSolver
+          Value: EquationSolverDeploymentPipeline
+      TemplateURL: !Ref ImageBuilderRoleURL # Required
   
-  PipelineRole:
-    Type: AWS::IAM::Role
+  EqnSolverPipelineRole:
+    Type: AWS::CloudFormation::Stack
     Properties:
-      AssumeRolePolicyDocument: #"JSON" # Required
-        Version: "2012-10-17"
-        Statement:
-          - 
-            Effect: Allow
-            Principal: 
-              Service: "codepipeline.amazonaws.com"
-            Action:
-              - "sts:AssumeRole"
-      Description: "The role assumed by AWS CodePipeline to perform its tasks."
-      ManagedPolicyArns:
-        - "arn:aws:iam::aws:policy/AWSCodePipeline_FullAccess"
-      Policies: 
-        - 
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - 
-                Effect: Allow
-                Action:
-                  - "codestar-connections:UseConnection"
-                Resource: 
-                  - "*"
-          PolicyName: "CodeStarConnection"
-        - 
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - 
-                Effect: Allow
-                Action:
-                  - "s3:Put*"
-                Resource:
-                  - !Sub "arn:aws:s3:::${S3ArtifactsStore}/*"
-                #Condition:
-                #  StringEquals:
-                #    "AWS::SourceAccount": !Ref AWS::AccountId
-          PolicyName: "EqnSolverImageBuilderLimitedS3Access2"
-        -
-          PolicyName: "ControlCodeBuild"
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - 
-                Effect: Allow
-                Action:
-                  - "codebuild:BatchGetBuilds"
-                  - "codebuild:StartBuild"
-                  - "codebuild:BatchGetBuildBatches"
-                  - "codebuild:StartBuildBatch"
-                Resource: "*"
-      RoleName: EqnSolverPipelineRole
-      Tags:
+      Parameters:
+         S3ArtifactsStore: !Ref S3ArtifactsStore
+      Tags: 
         - Key: Project
-          Value: EquationSolver
+          Value: EquationSolverDeploymentPipeline
+      TemplateURL: !Ref PipelineRoleURL # Required
 
   EqnSolverImageBuilder:
     Type: AWS::CodeBuild::Project
@@ -204,7 +72,7 @@ Resources:
       #ResourceAccessRole: "String"
       Source: 
         Type: CODEPIPELINE
-      ServiceRole: !Ref ImageBuilderRole
+      ServiceRole: !GetAtt EqnSolverImageBuilderRole.Outputs.EqnSolverImageBuilderRole
       Visibility: PRIVATE
 
   # The connection has to be enabled in the AWS console. Otherwise the pipeline will never be triggered.
@@ -227,7 +95,7 @@ Resources:
       Name: "EquationSolverDeploymentPipeline"
       PipelineType: "V2"
       RestartExecutionOnUpdate: false
-      RoleArn: !GetAtt PipelineRole.Arn
+      RoleArn: !GetAtt EqnSolverPipelineRole.Outputs.EqnSolverPipelineRole
       Stages: # Required
         - 
           Actions:

@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "A pipeline to deploy the equation solver code."
+
+
+Parameters:
+  S3ArtifactsStore:
+    Description: "The S3 bucket used to store CodePipeline artifacts."
+    Type: String
+  
+
+Resources:
+  PipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument: #"JSON" # Required
+        Version: "2012-10-17"
+        Statement:
+          - 
+            Effect: Allow
+            Principal: 
+              Service: "codepipeline.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Description: "The role assumed by AWS CodePipeline to perform its tasks."
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AWSCodePipeline_FullAccess"
+      Policies: 
+        - 
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - 
+                Effect: Allow
+                Action:
+                  - "codestar-connections:UseConnection"
+                Resource: 
+                  - "*"
+          PolicyName: "CodeStarConnection"
+        - 
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - 
+                Effect: Allow
+                Action:
+                  - "s3:Put*"
+                Resource:
+                  - !Sub "arn:aws:s3:::${S3ArtifactsStore}/*"
+                #Condition:
+                #  StringEquals:
+                #    "AWS::SourceAccount": !Ref AWS::AccountId
+          PolicyName: "EqnSolverImageBuilderLimitedS3Access2"
+        -
+          PolicyName: "ControlCodeBuild"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - 
+                Effect: Allow
+                Action:
+                  - "codebuild:BatchGetBuilds"
+                  - "codebuild:StartBuild"
+                  - "codebuild:BatchGetBuildBatches"
+                  - "codebuild:StartBuildBatch"
+                Resource: "*"
+      RoleName: EqnSolverPipelineRole
+      Tags:
+        - Key: Project
+          Value: EquationSolver
+
+
+Outputs:
+  EqnSolverPipelineRole:
+    Value: !GetAtt PipelineRole.Arn
