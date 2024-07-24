@@ -26,7 +26,18 @@ Resources:
               - "sts:AssumeRole"
       Description: "The role assumed by AWS CodeBuild to perform its tasks."
       Policies: 
-        - 
+        -
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - 
+                Effect: Allow
+                Action:
+                  - "ssm:GetParameters"
+                Resource:
+                  - !Sub "arn:aws:ssm:*:${AWS::AccountId}:parameter/portfolio/CICD/*"
+          PolicyName: "ReadS3ArtifactStoreNameInSSM" 
+        -
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -34,6 +45,7 @@ Resources:
                 Effect: Allow
                 Action:
                   - "s3:Get*"
+                  - "s3:Put*"
                 Resource:
                   - !Sub "arn:aws:s3:::${S3ArtifactsStore}/*"
                 #Condition:
