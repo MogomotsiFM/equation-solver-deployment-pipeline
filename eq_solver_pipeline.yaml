@@ -75,6 +75,31 @@ Resources:
       ServiceRole: !GetAtt EqnSolverImageBuilderRole.Outputs.EqnSolverImageBuilderRole
       Visibility: PRIVATE
 
+  IntegrationTestsDeploymentApp:
+    Type: AWS::CodeDeploy::Application
+    Properties:
+      ApplicationName: IntegrationTestsDeploymentStage
+      ComputePlatform: Lambda
+      
+  IntegrationTestsDeploymentGroup:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties:
+      ApplicationName: !Ref IntegrationTestsDeploymentApp # Required
+      DeploymentConfigName: !Ref IntegrationTestsDeploymentConfig
+      DeploymentGroupName: IntegrationTestsDeploymentGroup
+      DeploymentStyle:
+        DeploymentOption: WITH_TRAFFIC_CONTROL
+        DeploymentType: BLUE_GREEN
+      ServiceRoleArn: !Sub "arn:aws:iam::${AWS::AccountId}:role/codedeploy-role" # Required
+
+  IntegrationTestsDeploymentConfig:
+    Type: AWS::CodeDeploy::DeploymentConfig
+    Properties:
+      ComputePlatform: Lambda
+      DeploymentConfigName: IntegrationTestsDeploymentConfig
+      TrafficRoutingConfig:
+        Type: AllAtOnce
+
   # The connection has to be enabled in the AWS console. Otherwise the pipeline will never be triggered.
   EqnSolverPipelineGitHubConnection:
     Type: AWS::CodeConnections::Connection
@@ -150,6 +175,22 @@ Resources:
               OutputArtifacts:
                 - Name: EquationSolverDockerImage
           Name: BuildEquationSolverImage
+        - 
+          Actions:
+            - ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CodeDeploy
+                Version: "1"
+              Configuration:
+                ApplicationName: !Ref IntegrationTestsDeploymentApp
+                DeploymentGroupName: !Ref IntegrationTestsDeploymentGroup
+              InputArtifacts:
+                - Name: SourceArtifact # It contains the AppSpec.yml file
+              Name: IntegrationTestsResourcesDeployment
+              Namespace: IntegrationTestsPreparation
+              # RoleArn: "String"
+          Name: EquationSolverIntegrationTests
       Tags: 
         - Key: Project
           Value: EquationSolver
