@@ -22,4 +22,4 @@ a CodePipeline that has the following resources:
 - The integration between CodeBuild and CodeDeploy is not great for Lambda,
 - There is really no need to specify the current and target versions of a Lambda function in the AppSpec file. Given an alias,
   we should be able to deduce the current version. Moreover, if the target version is not specified then it should be assumed that I want to create a new version from $LATEST and associate it with the given alias,
-- 
+- We are using CodeBuild buildspec file to update the function and publish a new version. 
