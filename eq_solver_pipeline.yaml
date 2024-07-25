@@ -45,6 +45,9 @@ Resources:
     Properties:
       Artifacts:
         Type: CODEPIPELINE
+      #Cache:
+      #  Type: S3
+      #  Location: !Sub "${S3ArtifactsStore}/codebuild-cache"
       ConcurrentBuildLimit: 1
       Description: "Builds the eqn solver docker image"
       Environment:
@@ -70,6 +73,13 @@ Resources:
           StreamName: eqn-solver-builder
       Name: EquationSolverImageBuilderProject
       #ResourceAccessRole: "String"
+      SecondaryArtifacts:
+        -
+          ArtifactIdentifier: AppSpecFile
+          Location: !Ref S3ArtifactsStore
+          Name: "/"
+          Path: TestReports
+          Type: S3
       Source: 
         Type: CODEPIPELINE
       ServiceRole: !GetAtt EqnSolverImageBuilderRole.Outputs.EqnSolverImageBuilderRole
@@ -150,7 +160,7 @@ Resources:
               Configuration:
                 ConnectionArn: !GetAtt EqnSolverPipelineGitHubConnection.ConnectionArn
                 FullRepositoryId: "MogomotsiFM/docker_equation_solver"
-                BranchName: "main"
+                BranchName: "dev2"
                 OutputArtifactFormat: "CODE_ZIP"
               InputArtifacts: []
               Name: DockerizeEqnSolverSourceAction
@@ -173,7 +183,7 @@ Resources:
               Name: BuildEquationSolverDockerImage
               Namespace: EquationSolverBuilder
               OutputArtifacts:
-                - Name: EquationSolverDockerImage
+                - Name: AppSpecFile
           Name: BuildEquationSolverImage
         - 
           Actions:
@@ -186,7 +196,7 @@ Resources:
                 ApplicationName: !Ref IntegrationTestsDeploymentApp
                 DeploymentGroupName: !Ref IntegrationTestsDeploymentGroup
               InputArtifacts:
-                - Name: SourceArtifact # It contains the AppSpec.yml file
+                - Name: AppSpecFile
               Name: IntegrationTestsResourcesDeployment
               Namespace: IntegrationTestsPreparation
               # RoleArn: "String"
