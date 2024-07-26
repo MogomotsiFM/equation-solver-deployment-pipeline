@@ -45,6 +45,9 @@ Resources:
     Properties:
       Artifacts:
         Type: CODEPIPELINE
+      Cache:
+        Type: S3
+        Location: !Sub "${S3ArtifactsStore}/codebuild-cache"
       ConcurrentBuildLimit: 1
       Description: "Builds the eqn solver docker image"
       Environment:
@@ -59,6 +62,12 @@ Resources:
           -
             Name: IMAGE_TAG
             Value: test-image
+          - 
+            Name: LambdaFunctionName
+            Value: linear-equation-solver-demo
+          -
+            Name: LambdaFunctionAlias
+            Value: dev
         Image: "aws/codebuild/amazonlinux2-x86_64-standard:5.0"
         ImagePullCredentialsType: CODEBUILD
         PrivilegedMode: true
@@ -70,10 +79,42 @@ Resources:
           StreamName: eqn-solver-builder
       Name: EquationSolverImageBuilderProject
       #ResourceAccessRole: "String"
+      SecondaryArtifacts:
+        -
+          ArtifactIdentifier: AppSpecFile
+          Location: !Ref S3ArtifactsStore
+          Name: "/"
+          Path: TestReports
+          Type: S3
       Source: 
         Type: CODEPIPELINE
       ServiceRole: !GetAtt EqnSolverImageBuilderRole.Outputs.EqnSolverImageBuilderRole
       Visibility: PRIVATE
+
+  IntegrationTestsDeploymentApp:
+    Type: AWS::CodeDeploy::Application
+    Properties:
+      ApplicationName: IntegrationTestsDeploymentStage
+      ComputePlatform: Lambda
+      
+  IntegrationTestsDeploymentGroup:
+    Type: AWS::CodeDeploy::DeploymentGroup
+    Properties:
+      ApplicationName: !Ref IntegrationTestsDeploymentApp # Required
+      DeploymentConfigName: !Ref IntegrationTestsDeploymentConfig
+      DeploymentGroupName: IntegrationTestsDeploymentGroup
+      DeploymentStyle:
+        DeploymentOption: WITH_TRAFFIC_CONTROL
+        DeploymentType: BLUE_GREEN
+      ServiceRoleArn: !Sub "arn:aws:iam::${AWS::AccountId}:role/codedeploy-role" # Required
+
+  IntegrationTestsDeploymentConfig:
+    Type: AWS::CodeDeploy::DeploymentConfig
+    Properties:
+      ComputePlatform: Lambda
+      DeploymentConfigName: IntegrationTestsDeploymentConfig
+      TrafficRoutingConfig:
+        Type: AllAtOnce
 
   # The connection has to be enabled in the AWS console. Otherwise the pipeline will never be triggered.
   EqnSolverPipelineGitHubConnection:
@@ -148,8 +189,26 @@ Resources:
               Name: BuildEquationSolverDockerImage
               Namespace: EquationSolverBuilder
               OutputArtifacts:
-                - Name: EquationSolverDockerImage
+                - Name: AppSpecFile
+                - Name: TestReports
           Name: BuildEquationSolverImage
+        - 
+          Actions:
+            - ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: CodeDeploy
+                Version: "1"
+              Configuration:
+                ApplicationName: !Ref IntegrationTestsDeploymentApp
+                DeploymentGroupName: !Ref IntegrationTestsDeploymentGroup
+              InputArtifacts:
+              #  - Name: SourceArtifact 
+                - Name: AppSpecFile
+              Name: IntegrationTestsResourcesDeployment
+              Namespace: IntegrationTestsPreparation
+              # RoleArn: "String"
+          Name: EquationSolverIntegrationTests
       Tags: 
         - Key: Project
           Value: EquationSolver

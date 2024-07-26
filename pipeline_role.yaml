@@ -44,12 +44,13 @@ Resources:
                 Effect: Allow
                 Action:
                   - "s3:Put*"
+                  - "s3:Get*"
                 Resource:
                   - !Sub "arn:aws:s3:::${S3ArtifactsStore}/*"
                 #Condition:
                 #  StringEquals:
                 #    "AWS::SourceAccount": !Ref AWS::AccountId
-          PolicyName: "EqnSolverImageBuilderLimitedS3Access2"
+          PolicyName: "EqnSolverImageBuilderLimitedS3Access"
         -
           PolicyName: "ControlCodeBuild"
           PolicyDocument:
@@ -62,6 +63,20 @@ Resources:
                   - "codebuild:StartBuild"
                   - "codebuild:BatchGetBuildBatches"
                   - "codebuild:StartBuildBatch"
+                Resource: "*"
+        -
+          PolicyName: "ControlCodeDeploy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - 
+                Effect: Allow
+                Action:
+                  - codedeploy:CreateDeployment
+                  - codedeploy:GetApplicationRevision
+                  - codedeploy:RegisterApplicationRevision
+                  - codedeploy:GetDeploymentConfig
+                  - codedeploy:GetDeployment
                 Resource: "*"
       RoleName: EqnSolverPipelineRole
       Tags:
