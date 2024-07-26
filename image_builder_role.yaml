@@ -89,6 +89,18 @@ Resources:
                   - "logs:CreateLogGroup"
                 Resource: "*"
           PolicyName: "CloudWatchFullAccess0"
+        -
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - 
+                Effect: Allow
+                Action:
+                  - "lambda:UpdateFunctionCode"
+                  - "lambda:PublishVersion"
+                  - "lambda:GetAlias"
+                Resource: "*"
+          PolicyName: "AllowCodeBuildToCreateAppSpecLambdaFunction"
         - 
           PolicyDocument:
             Version: "2012-10-17"
