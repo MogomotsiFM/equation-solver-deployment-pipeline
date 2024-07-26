@@ -20,7 +20,7 @@ a CodePipeline that has the following resources:
 
 
 ## Notes
-- AWS CodeDeploy cannot read the AppSpec.yml file from the input artifact. The input artifact is the docker_equation_solver repository. We used a "hack" to read it from the host that builds our Docker image via the secondary artifact of the buildspec.yml file,
+- AWS CodeDeploy cannot read the AppSpec.yml file from the input artifact [[1]](https://www.reddit.com/r/aws/comments/12f51k3/an_appspec_file_is_required_but_could_not_be/). The input artifact is the docker_equation_solver repository. We used a "hack" to read it from the host that builds our Docker image via the secondary artifact of the buildspec.yml file,
 - We improved the process used to build our Docker image. We use a [multi-stage](https://docs.docker.com/language/java/run-tests/) process. This allows one stage to be used for running unit tests. We install every library we need at this stage. This includes git and OpenSSH, and our application, dependencies, and unit tests. The other stage is to build the Docker image that is eventually pushed to AWS ECR. The application is copied from the test stage into the production stage. This results in a much lighter image,
 - ~~The Configuration property of the CodePipeline action is poorly documented~~,
 - The integration between CodeBuild and CodeDeploy is not great for Lambda. There is really no need to specify the current and target versions of a Lambda function in the AppSpec file.       - Given an alias, we should be able to deduce the current version. Therefore, we only ever need to specify one of these,
