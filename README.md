@@ -6,10 +6,14 @@ a CodePipeline that has the following resources:
     - To build the Docker image,
     - To run unit tests,
     - Push the image to AWS Elastic Container Registry,
+    - ~Generate the AppSpec file and pipe it to CodeDeploy using output artifacts in the buildspec file~,
 - AWS CodeDeploy
-  - To deploy a pre-production Lambda function that uses the image created above,
-  - To deploy an API Gateway pre-production stage,
+  - To deploy a pre-production Lambda function alias that uses the image created above,
+  - ~~To deploy an API Gateway pre-production stage~~,
+- AWS CodeBuild
   - To run integration tests,
+  - Integrate with Postman,
+  - Generate an AppSpec file and pipe it to CodeDeploy. This is a lesson from the first CodeBuild integration,
 - AWS CodeDeploy
   - To deploy a production Lambda function using a canary deployment strategy,
   - To deploy an API Gateway production stage.
@@ -32,3 +36,7 @@ a CodePipeline that has the following resources:
 
 ### Interlude
 At this point, our configuration, which involves piping the AppSpec file from CodeBuild buildspec to CodePipeline, is working. We know this because the CodePipeline error message says that the specified Lambda function does not exist. The Lambda function and API Gateway are not central to CICD. As a result, we create them using the console to unblock ourselves. 
+
+## Adding integration tests
+- We use CodeBuild and Postman to run the integration tests,
+- We have a couple of unit tests that can pass for integration tests. We copy them into a new integration tests folder in the equation solver repository.
