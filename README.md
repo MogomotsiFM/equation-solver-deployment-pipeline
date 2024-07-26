@@ -21,7 +21,7 @@ a CodePipeline that has the following resources:
 - ~~The Configuration property of the CodePipeline action is poorly documented~~,
 - The integration between CodeBuild and CodeDeploy is not great for Lambda. There is really no need to specify the current and target versions of a Lambda function in the AppSpec file.       - Given an alias, we should be able to deduce the current version. Therefore, we only ever need to specify one of these,
     - Moreover, if the target version is not specified then it should be assumed that we want to create a new version from the artifacts and associate it with the given alias,
-- We are using the CodeBuild buildspec file to update the function (lambda::UpdataFuntionCode) and publish a new version (lambda::PublishVersion). These functions could, we dare say, should be performed by CodeDeploy for Lambda deployments to improve integration.
+- We are using the CodeBuild [buildspec](https://github.com/MogomotsiFM/docker_equation_solver/commit/dc06c867eb99be264f520fcb1fbf7f16877f017a) file to update the function (lambda::UpdataFuntionCode) and publish a new version (lambda::PublishVersion). These functions could, we dare say, should be performed by CodeDeploy for Lambda deployments to improve integration.
 
 ## Triggering the pipeline using GitHub
 - CodePipeline polls the repository for changes,
