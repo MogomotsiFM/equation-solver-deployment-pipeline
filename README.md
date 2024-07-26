@@ -28,15 +28,16 @@ a CodePipeline that has the following resources:
 - We are using the CodeBuild [buildspec](https://github.com/MogomotsiFM/docker_equation_solver/commit/dc06c867eb99be264f520fcb1fbf7f16877f017a) file to update the function (lambda::UpdataFuntionCode) and publish a new version (lambda::PublishVersion). These functions could, we dare say, should be performed by CodeDeploy for Lambda deployments to improve integration.
 
 ## Triggering the pipeline using GitHub
+The following are strategies to trigger our code pipeline:
 - CodePipeline polls the repository for changes,
 - Use Webhooks,
 - Use CodeStarConnections.
 
 ## Integrating CodeDeploy
 
-### Interlude
+## Interlude
 At this point, our configuration, which involves piping the AppSpec file from CodeBuild buildspec to CodePipeline, is working. We know this because the CodePipeline error message says that the specified Lambda function does not exist. The Lambda function and API Gateway are not central to CICD. As a result, we create them using the console to unblock ourselves. 
 
 ## Adding integration tests
 - We use CodeBuild and Postman to run the integration tests,
-- We have a couple of unit tests that can pass for integration tests. We copy them into a new integration tests folder in the equation solver repository.
+- We have a couple of unit tests in the equation solver repository that can pass for integration tests. We copy them into a new integration tests folder.
