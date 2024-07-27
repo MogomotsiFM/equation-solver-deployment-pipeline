@@ -36,8 +36,16 @@ The following are strategies to trigger our code pipeline:
 ## Integrating CodeDeploy
 
 ## Interlude
-At this point, our configuration, which involves piping the AppSpec file from CodeBuild buildspec to CodePipeline, is working. We know this because the CodePipeline error message says that the specified Lambda function does not exist. The Lambda function and API Gateway are not central to CICD. As a result, we create them using the console to unblock ourselves. 
+At this point, our configuration, which involves piping the AppSpec file from CodeBuild buildspec to CodePipeline, is working. We know this because the CodePipeline error message says that the specified Lambda function does not exist. The Lambda function and API Gateway are not central to CICD. As a result, we create them using the console to unblock ourselves. The following figure shows the state of the pipeline:
+![Screenshot 2024-07-26 201139](https://github.com/user-attachments/assets/aedeacbb-3dd1-41ba-970f-b3b97e5f2ba9)
+
 
 ## Adding integration tests
 - We use CodeBuild and Postman to run the integration tests,
-- We have a couple of unit tests in the equation solver repository that can pass for integration tests. We copy them into a new integration tests folder.
+- We have a couple of unit tests in the equation solver repository that can pass for integration tests. We present them in a format that Postman requires.
+
+  ### Using Postman
+  - We created test data in a JSON file [[2]](https://github.com/MogomotsiFM/equation_solver/commit/74f64faa47e1fee5b5d717a47329da00ee381a08),
+  - We created a collection using the Postman GUI. This included configuring the API endpoint and keys to access that endpoint. You could also add methods
+    to retrieve tokens if your API requires them. We exported this collection so it may be used from the CLI in the CodeBuild host [[3]](https://github.com/MogomotsiFM/docker_equation_solver/commit/33f185c8ff952c061abc6982df55a7df2b002981),
+  - We create a CodeBuild buildspec.yaml file taht runs the integration tests. It also retrieves the required API key from AWS System Manager Parameter Store.
