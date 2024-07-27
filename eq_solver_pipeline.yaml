@@ -183,10 +183,10 @@ Resources:
       ComputePlatform: Lambda
       DeploymentConfigName: ProductionResourcesDeploymentConfig
       TrafficRoutingConfig:
-        Type: TimeBasedLinear
-        TimeBasedLinear:
-          LinearInterval: 10
-          LinearPercentage: 20
+        Type: TimeBasedCanary
+        TimeBasedCanary:
+          CanaryInterval: 10
+          CanaryPercentage: 25
 
   # The connection has to be enabled in the AWS console. Otherwise the pipeline will never be triggered.
   EqnSolverPipelineGitHubConnection:
@@ -204,7 +204,7 @@ Resources:
       ArtifactStore:
         Location: !Ref S3ArtifactsStore
         Type: "S3"
-      ExecutionMode: "QUEUED"
+      ExecutionMode: "SUPERSEDED"
       Name: "EquationSolverDeploymentPipeline"
       PipelineType: "V2"
       RestartExecutionOnUpdate: false
