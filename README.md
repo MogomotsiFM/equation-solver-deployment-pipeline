@@ -16,7 +16,8 @@ a CodePipeline that has the following resources:
   - Generate an AppSpec file and pipe it to CodeDeploy. This is a lesson from the first CodeBuild integration,
 - AWS CodeDeploy
   - To deploy a production Lambda function using a canary deployment strategy,
-  - To deploy an API Gateway production stage.
+  - ~To deploy an API Gateway production stage~,
+  - Add alarms that can trigger rollback in case of failures.
 
 
 ## Notes
