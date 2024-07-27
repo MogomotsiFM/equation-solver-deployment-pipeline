@@ -37,6 +37,7 @@ The following are strategies to trigger our code pipeline:
 
 ## Interlude
 At this point, our configuration, which involves piping the AppSpec file from CodeBuild buildspec to CodePipeline, is working. We know this because the CodePipeline error message says that the specified Lambda function does not exist. The Lambda function and API Gateway are not central to CICD. As a result, we create them using the console to unblock ourselves. The following figure shows the state of the pipeline:
+
 ![Screenshot 2024-07-26 201139](https://github.com/user-attachments/assets/aedeacbb-3dd1-41ba-970f-b3b97e5f2ba9)
 
 
