@@ -6,7 +6,7 @@ a CodePipeline that has the following resources:
     - To build the Docker image,
     - To run unit tests,
     - Push the image to AWS Elastic Container Registry,
-    - ~Generate the AppSpec file and pipe it to CodeDeploy using output artifacts in the buildspec file~,
+    - *Generate the AppSpec file and pipe it to CodeDeploy using output artifacts in the buildspec file*,
 - AWS CodeDeploy
   - To deploy a pre-production Lambda function alias that uses the image created above,
   - ~~To deploy an API Gateway pre-production stage~~,
