@@ -48,5 +48,5 @@ At this point, our configuration, which involves piping the AppSpec file from Co
   ### Using Postman
   - We created test data in a JSON file [[2]](https://github.com/MogomotsiFM/equation_solver/commit/74f64faa47e1fee5b5d717a47329da00ee381a08),
   - We created a collection using the Postman GUI. This included configuring the API endpoint and keys to access that endpoint. You could also add methods
-    to retrieve tokens if your API requires them. We exported this collection so it may be used from the CLI in the CodeBuild host [[3]](https://github.com/MogomotsiFM/docker_equation_solver/commit/33f185c8ff952c061abc6982df55a7df2b002981),
-  - We create a CodeBuild buildspec.yaml file that runs the integration tests. It also retrieves the required API key from the AWS System Manager Parameter Store.
+    to retrieve tokens if your API requires them. We exported this collection so it may be used from the CLI in the CodeBuild host [[3]](https://github.com/MogomotsiFM/docker_equation_solver/blob/main/LinearEquationSolverIntegrationRequireAPIKey.postman_collection.json),
+  - We created a CodeBuild [buildspec.yaml](https://github.com/MogomotsiFM/docker_equation_solver/blob/main/buildspec.yml) file that runs the integration tests. It also retrieves the required API key from the AWS System Manager Parameter Store.
