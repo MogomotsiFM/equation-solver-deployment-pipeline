@@ -1,5 +1,5 @@
 # Equation Solver Deployment Pipeline
-The idea is to create an AWS CodePipeline to deploy changes to the [equation solver](https://github.com/MogomotsiFM/equation_solver) and [dockerize_equation_solver](https://github.com/MogomotsiFM/docker_equation_solver) repositories. The first repository contains the actual linear equation solver code. The second one includes a Docker file that packages the equation solver code as an image. The image is meant to be used with an AWS Lambda function. At a high level, we aim to create 
+The idea is to create an AWS CodePipeline to deploy changes to the [equation solver](https://github.com/MogomotsiFM/equation_solver) and [dockerize equation solver](https://github.com/MogomotsiFM/docker_equation_solver) repositories. The first repository contains the actual linear equation solver code. The second one includes a Docker file that packages the equation solver code as an image. The image is meant to be used with an AWS Lambda function. At a high level, we aim to create 
 a CodePipeline that has the following resources:
 - Integrate GitHub with AWS CodePipeline,
 - AWS CodeBuild
