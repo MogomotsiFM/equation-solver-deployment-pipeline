@@ -1,5 +1,5 @@
 # Equation Solver Deployment Pipeline
-The idea is to create an AWS CodePipeline to deploy changes to the equation_solver and dockerize_equation_solver repositories. At a high level, we aim to create 
+The idea is to create an AWS CodePipeline to deploy changes to the [equation solver](https://github.com/MogomotsiFM/equation_solver) and [dockerize_equation_solver](https://github.com/MogomotsiFM/docker_equation_solver) repositories. At a high level, we aim to create 
 a CodePipeline that has the following resources:
 - Integrate GitHub with AWS CodePipeline,
 - AWS CodeBuild
@@ -11,12 +11,11 @@ a CodePipeline that has the following resources:
   - To deploy a pre-production Lambda function alias that uses the image created above,
   - ~~To deploy an API Gateway pre-production stage~~,
 - AWS CodeBuild
-  - To run integration tests,
-  - Integrate with Postman,
-  - Generate an AppSpec file and pipe it to CodeDeploy. This is a lesson from the first CodeBuild integration,
+  - To run integration tests using Postman,
+  - *Generate an AppSpec file and pipe it to CodeDeploy. This is a lesson from the first CodeBuild integration*,
 - AWS CodeDeploy
   - To deploy a production Lambda function using a canary deployment strategy,
-  - ~To deploy an API Gateway production stage~,
+  - ~~To deploy an API Gateway production stage~~,
   - Add alarms that can trigger rollback in case of failures.
 
 
@@ -50,4 +49,4 @@ At this point, our configuration, which involves piping the AppSpec file from Co
   - We created test data in a JSON file [[2]](https://github.com/MogomotsiFM/equation_solver/commit/74f64faa47e1fee5b5d717a47329da00ee381a08),
   - We created a collection using the Postman GUI. This included configuring the API endpoint and keys to access that endpoint. You could also add methods
     to retrieve tokens if your API requires them. We exported this collection so it may be used from the CLI in the CodeBuild host [[3]](https://github.com/MogomotsiFM/docker_equation_solver/commit/33f185c8ff952c061abc6982df55a7df2b002981),
-  - We create a CodeBuild buildspec.yaml file taht runs the integration tests. It also retrieves the required API key from AWS System Manager Parameter Store.
+  - We create a CodeBuild buildspec.yaml file that runs the integration tests. It also retrieves the required API key from the AWS System Manager Parameter Store.
