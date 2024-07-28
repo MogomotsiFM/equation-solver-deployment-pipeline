@@ -1,5 +1,5 @@
 # Equation Solver Deployment Pipeline
-The idea is to create an AWS CodePipeline to deploy changes to the [equation solver](https://github.com/MogomotsiFM/equation_solver) and [dockerize_equation_solver](https://github.com/MogomotsiFM/docker_equation_solver) repositories. At a high level, we aim to create 
+The idea is to create an AWS CodePipeline to deploy changes to the [equation solver](https://github.com/MogomotsiFM/equation_solver) and [dockerize_equation_solver](https://github.com/MogomotsiFM/docker_equation_solver) repositories. The first repository contains the actual linear equation solver code. The second one includes a Docker file that packages the equation solver code as an image. The image is meant to be used with an AWS Lambda function. At a high level, we aim to create 
 a CodePipeline that has the following resources:
 - Integrate GitHub with AWS CodePipeline,
 - AWS CodeBuild
@@ -50,3 +50,8 @@ At this point, our configuration, which involves piping the AppSpec file from Co
   - We created a collection using the Postman GUI. This included configuring the API endpoint and keys to access that endpoint. You could also add methods
     to retrieve tokens if your API requires them. We exported this collection so it may be used from the CLI in the CodeBuild host [[3]](https://github.com/MogomotsiFM/docker_equation_solver/blob/main/LinearEquationSolverIntegrationRequireAPIKey.postman_collection.json),
   - We created a CodeBuild [buildspec.yaml](https://github.com/MogomotsiFM/docker_equation_solver/blob/main/buildspec.yml) file that runs the integration tests. It also retrieves the required API key from the AWS System Manager Parameter Store.
+ 
+
+
+
+ 
