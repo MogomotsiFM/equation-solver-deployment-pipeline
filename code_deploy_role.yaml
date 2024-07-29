@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "A role used by the CodeDeploy action to deploy our Lambda function."
+
+
+Resources:
+  EquationSolverCodeDeployRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:  # Required
+        Version: "2012-10-17"
+        Statement:
+          - 
+            Effect: Allow
+            Principal: 
+              Service: "codedeploy.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Description: "A role used by the CodeDeploy action to deploy the pre-prod and prod Lambda functions."
+      ManagedPolicyArns: 
+        - "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+        - "arn:aws:iam::aws:policy/AWSLambda_FullAccess"
+      Policies: 
+        -
+          PolicyName: "StdCodeDeployPermissions"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - 
+                Effect: Allow
+                Action:
+                  - tag:GetResources
+                  - sns:Publish
+                  - cloudwatch:DescribeAlarms
+                  - cloudwatch:PutMetricAlarm
+                Resource: "*"
+      RoleName: EquationSolverCodeDeployRole
+      Tags: 
+        - Key: Project
+          Value: EquationSolver
+
+
+Outputs:
+  EquationSolverCodeDeployRole:
+    Value: !GetAtt EquationSolverCodeDeployRole.Arn
