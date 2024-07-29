@@ -22,6 +22,47 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /portfolio/CICD/codedeploy-role
     Description: The SSM parameter that stores an S3 object URL of the role (code_deploy_role.yaml) used by AWS CodeDeploy.
+  LambdaFunctionName:
+    Type: String
+    Default: linear-equation-solver-demo
+    Description: The name of the Lambda function we want to deploy
+  IntegrationTestsLambdaFunctionAlias:
+    Type: String
+    Description: The alias of the Lambda function against which we want to run integration tests
+    Default: beta
+  ProductionLambdaFunctionAlias:
+    Type: String
+    Description: The alias of the Lambda function we want to deploy to production
+    Default: prod
+
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - 
+        Label: 
+          default: "Lambda Function Parameters"
+        Parameters: 
+          - LambdaFunctionName
+          - IntegrationTestsLambdaFunctionAlias
+          - ProductionLambdaFunctionAlias
+      -
+        Label: 
+          default: "CloudFormation Roles Templates"
+        Parameters: 
+          - PipelineRoleURL
+          - ImageBuilderRoleURL
+          - CodeDeployRoleURL
+      - 
+        Label: 
+          default: Pipeline Artifacts Store
+        Parameters:
+          - S3ArtifactsStore
+      - 
+        Label: 
+          default: CloudWatch
+        Parameters:
+          - CloudWatchLogsGroupName
 
 
 Resources: 
@@ -75,10 +116,10 @@ Resources:
             Value: !Ref AWS::AccountId
           -
             Name: LambdaFunctionName
-            Value: linear-equation-solver-demo
+            Value: !Ref LambdaFunctionName
           -
             Name: LambdaFunctionAlias
-            Value: dev
+            Value: !Ref IntegrationTestsLambdaFunctionAlias
         Image: "aws/codebuild/amazonlinux2-x86_64-standard:5.0"
         ImagePullCredentialsType: CODEBUILD
         PrivilegedMode: true
@@ -123,10 +164,10 @@ Resources:
             Value: !Ref AWS::AccountId
           - 
             Name: LambdaFunctionName
-            Value: linear-equation-solver-demo
+            Value: !Ref LambdaFunctionName
           -
             Name: LambdaFunctionAlias
-            Value: prod
+            Value: !Ref ProductionLambdaFunctionAlias
         Image: "aws/codebuild/amazonlinux2-x86_64-standard:5.0"
         ImagePullCredentialsType: CODEBUILD
         PrivilegedMode: true
