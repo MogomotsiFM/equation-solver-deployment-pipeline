@@ -74,9 +74,6 @@ Resources:
             Name: AWS_ACCOUNT_ID
             Value: !Ref AWS::AccountId
           -
-            Name: IMAGE_TAG
-            Value: test-image
-          - 
             Name: LambdaFunctionName
             Value: linear-equation-solver-demo
           -
@@ -124,9 +121,6 @@ Resources:
           -
             Name: AWS_ACCOUNT_ID
             Value: !Ref AWS::AccountId
-          -
-            Name: IMAGE_TAG
-            Value: test-image
           - 
             Name: LambdaFunctionName
             Value: linear-equation-solver-demo
