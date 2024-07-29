@@ -219,6 +219,11 @@ Resources:
     Type: AWS::CodeDeploy::DeploymentGroup
     Properties:
       ApplicationName: !Ref ProductionResourcesDeploymentApp # Required
+      AlarmConfiguration:
+        Alarms:
+          - Name: !Ref AutoRollbackProductionDeploymentAlarm
+        Enabled: True
+        IgnorePollAlarmFailure: True
       AutoRollbackConfiguration: 
         Enabled: True
         Events:
@@ -252,6 +257,64 @@ Resources:
       Tags: 
         - Key: Project
           Value: EquationSolverDeploymentPipeline
+
+  AutoRollbackProductionDeploymentAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: AutoRollbackProductionDeploymentAlarm
+      ComparisonOperator: GreaterThanOrEqualToThreshold # Required
+      #DatapointsToAlarm: "Number"
+      EvaluationPeriods: 1 # Required 
+      Metrics: 
+        - 
+          Id: invocations_count
+          Label: "Number Of Invocations"
+          MetricStat:
+            Metric:
+              Dimensions:
+                - 
+                  Name: FunctionName
+                  Value: linear-equation-solver-demo
+                - 
+                  Name: Resource
+                  Value: linear-equation-solver-demo:prod
+              MetricName: Invocations
+              Namespace: AWS/Lambda
+            Period: 60 #15
+            Stat: Sum
+            Unit: Count
+          ReturnData: False
+        - 
+          Id: errors_count
+          Label: "Number Of Errors"
+          MetricStat:
+            Metric:
+              Dimensions:
+                - 
+                  Name: FunctionName
+                  Value: linear-equation-solver-demo
+                - 
+                  Name: Resource
+                  Value: linear-equation-solver-demo:prod
+              MetricName: Errors
+              Namespace: AWS/Lambda
+            Period: 60 #15
+            Stat: Sum
+            Unit: Count
+          ReturnData: False
+        - 
+          Expression: "100 * (errors_count / invocations_count)"
+          Id: eqn_solver_error_rate
+          Label: "Equation Solver Error Rates"
+          #Period: 60 # 15
+          ReturnData: True
+      # Namespace: EquationSolverLambdaFunction
+      Tags: 
+        - Key: Project
+          Value: EquationSolver
+      Threshold: 1
+      TreatMissingData: notBreaching
+      #Unit: Percent
 
   EqnSolverPipeline:
     Type: AWS::CodePipeline::Pipeline
