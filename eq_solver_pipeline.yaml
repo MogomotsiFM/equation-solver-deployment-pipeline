@@ -13,12 +13,15 @@ Parameters:
   ImageBuilderRoleURL:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /portfolio/CICD/image-builder-role
+    Description: The SSM parameter that stores an S3 object URL of the role (image_builder_role.yaml) used by AWS CodeBuild.
   PipelineRoleURL:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /portfolio/CICD/pipeline-role
+    Description: The SSM parameter that stores an S3 object URL of the role (pipeline_role.yaml) used by AWS CodePipeline.
   CodeDeployRoleURL:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /portfolio/CICD/codedeploy-role
+    Description: The SSM parameter that stores an S3 object URL of the role (code_deploy_role.yaml) used by AWS CodeDeploy.
 
 
 Resources: 
