@@ -18,6 +18,10 @@ a CodePipeline that has the following resources:
   - ~~To deploy an API Gateway production stage~~,
   - Add alarms that can trigger rollback in case of failures.
 
+## Prerequisites
+Create the following resources:
+- A Lambda function with two aliases. One to run integration tests against and another to service production requests,
+- An API Gateway with two stages, one per Lambda function alias.
 
 ## Notes
 - AWS CodeDeploy cannot read the AppSpec.yml file from the input artifact [[1]](https://www.reddit.com/r/aws/comments/12f51k3/an_appspec_file_is_required_but_could_not_be/). The input artifact is the docker_equation_solver repository. We used a "hack" to read it from the host that builds our Docker image via the secondary artifact of the buildspec.yml file,
@@ -28,7 +32,7 @@ a CodePipeline that has the following resources:
 - We are using the CodeBuild [buildspec](https://github.com/MogomotsiFM/docker_equation_solver/commit/dc06c867eb99be264f520fcb1fbf7f16877f017a) file to update the function (lambda::UpdateFuntionCode) and publish a new version (lambda::PublishVersion). These functions could, we dare say, should be performed by CodeDeploy for Lambda deployments to improve integration.
 
 ## Triggering the pipeline using GitHub
-The following are strategies to trigger our code pipeline:
+The following are options to trigger a pipeline:
 - CodePipeline polls the repository for changes,
 - Use Webhooks,
 - Use CodeStarConnections.
