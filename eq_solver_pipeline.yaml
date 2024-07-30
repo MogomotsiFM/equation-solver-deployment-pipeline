@@ -34,6 +34,10 @@ Parameters:
     Type: String
     Description: The alias of the Lambda function we want to deploy to production
     Default: prod
+  APIGatewayInvokeURL:
+    Type: String
+    Description: The API Gateway invoke URL for integration testing
+    Default: "https://uzw4exadb8.execute-api.us-east-1.amazonaws.com/beta/"
 
 
 Metadata:
@@ -43,6 +47,7 @@ Metadata:
         Label: 
           default: "Lambda Function Parameters"
         Parameters: 
+          - APIGatewayInvokeURL 
           - LambdaFunctionName
           - IntegrationTestsLambdaFunctionAlias
           - ProductionLambdaFunctionAlias
@@ -152,7 +157,7 @@ Resources:
         Type: S3
         Location: !Sub "${S3ArtifactsStore}/codebuild-cache"
       ConcurrentBuildLimit: 1
-      Description: "Builds the eqn solver docker image"
+      Description: "Runs integration tests."
       Environment:
         ComputeType: BUILD_GENERAL1_SMALL
         EnvironmentVariables: 
@@ -168,6 +173,9 @@ Resources:
           -
             Name: LambdaFunctionAlias
             Value: !Ref ProductionLambdaFunctionAlias
+          -
+            Name: ApiGatewayInvokeUrl
+            Value: !Ref APIGatewayInvokeURL
         Image: "aws/codebuild/amazonlinux2-x86_64-standard:5.0"
         ImagePullCredentialsType: CODEBUILD
         PrivilegedMode: true
