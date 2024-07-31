@@ -29,7 +29,12 @@ Create the following resources:
 - ~~The Configuration property of the CodePipeline action is poorly documented~~,
 - The integration between CodeBuild and CodeDeploy is not great for Lambda. There is really no need to specify the current and target versions of a Lambda function in the AppSpec file.       - Given an alias, we should be able to deduce the current version. Therefore, we should only ever need to specify one of these,
     - Moreover, if the target version is not specified then it should be assumed that we want to create a new version from the artifacts and associate it with the given alias,
-- We are using the CodeBuild [buildspec](https://github.com/MogomotsiFM/docker_equation_solver/commit/dc06c867eb99be264f520fcb1fbf7f16877f017a) file to update the function (lambda::UpdateFuntionCode) and publish a new version (lambda::PublishVersion). These functions could, we dare say, should be performed by CodeDeploy for Lambda deployments to improve integration.
+- We are using the CodeBuild [buildspec](https://github.com/MogomotsiFM/docker_equation_solver/commit/dc06c867eb99be264f520fcb1fbf7f16877f017a) file to update the function (lambda::UpdateFuntionCode) and publish a new version (lambda::PublishVersion). These functions could, we dare say, should be performed by CodeDeploy for Lambda deployments to improve integration,
+- Generating build reports is a bit hacky:
+    - Create an *AWS::Build::Project* with an arbitrary name, say, **BuildDockerImage**,
+    - Create a *report* phase in the *buildspec.yaml* file and give it an arbitrary logical name, say, **UnitTests**,
+    - Tie these two together by creating an *AWS::ReportGroup* and name it **BuildDockerImage**-**UnitTests**,
+- It would have been nice if there was a parameter in the report group to tie these together. 
 
 ## Triggering the pipeline using GitHub
 The following are options to trigger a pipeline:
