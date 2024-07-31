@@ -100,7 +100,7 @@ Resources:
           Value: EquationSolverDeploymentPipeline
       TemplateURL: !Ref CodeDeployRoleURL # Required
 
-  EqnSolverImageBuilder:
+  ImageBuilder:
     Type: AWS::CodeBuild::Project
     Properties:
       Artifacts:
@@ -134,13 +134,13 @@ Resources:
           GroupName: !Ref CloudWatchLogsGroupName
           Status: ENABLED
           StreamName: eqn-solver-builder
-      Name: EquationSolverImageBuilderProject
+      Name: ImageBuilderProject
       Source: 
         Type: CODEPIPELINE
       ServiceRole: !GetAtt EqnSolverImageBuilderRole.Outputs.EqnSolverImageBuilderRole
       Visibility: PRIVATE
 
-  EqnSolverIntegrationTests:
+  IntegrationTestsRunner:
     Type: AWS::CodeBuild::Project
     Properties:
       Artifacts:
@@ -177,7 +177,7 @@ Resources:
           GroupName: !Ref CloudWatchLogsGroupName
           Status: ENABLED
           StreamName: eqn-solver-builder
-      Name: EquationSolverIntegrationTestsProject
+      Name: IntegrationTestsRunnerProject
       Source: 
         Type: CODEPIPELINE
         BuildSpec: "integration_tests_buildspec.yaml"
@@ -194,7 +194,7 @@ Resources:
           Bucket: !Ref S3ArtifactsStore
           Packaging: NONE
           Path: Reports
-      Name: EquationSolverIntegrationTestsProject-IntegrationTests
+      Name: !Sub "${IntegrationTestsRunner}-IntegrationTests"
       Tags: 
         - Key: Project
           Value: EquationSolver
@@ -210,7 +210,7 @@ Resources:
           Bucket: !Ref S3ArtifactsStore
           Packaging: NONE
           Path: Reports
-      Name: EquationSolverImageBuilderProject-UnitTests
+      Name: !Sub "${ImageBuilder}-UnitTests"
       Tags: 
         - Key: Project
           Value: EquationSolver
@@ -288,7 +288,7 @@ Resources:
       ProviderType: GitHub
       Tags: 
         - Key: Project
-          Value: EquationSolverDeploymentPipeline
+          Value: EquationSolver
 
   AutoRollbackProductionDeploymentAlarm:
     Type: AWS::CloudWatch::Alarm
@@ -348,14 +348,14 @@ Resources:
       TreatMissingData: notBreaching
       #Unit: Percent
 
-  EqnSolverPipeline:
+  ProjectPipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
       ArtifactStore:
         Location: !Ref S3ArtifactsStore
         Type: "S3"
       ExecutionMode: "SUPERSEDED"
-      Name: "EquationSolverDeploymentPipeline"
+      Name: "EquationSolverDeployment"
       PipelineType: "V2"
       RestartExecutionOnUpdate: false
       RoleArn: !GetAtt EqnSolverPipelineRole.Outputs.EqnSolverPipelineRole
@@ -405,17 +405,18 @@ Resources:
                 Provider: CodeBuild
                 Version: "1"
               Configuration:
-                ProjectName: !Ref EqnSolverImageBuilder
+                ProjectName: !Ref ImageBuilder
               InputArtifacts:
                 - Name: SourceArtifact
-              Name: BuildEquationSolverDockerImage
+              Name: BuildDockerImage
               Namespace: EquationSolverBuilder
               OutputArtifacts:
                 - Name: AppSpecFile
-          Name: BuildEquationSolverImage
+          Name: BuildDockerImage
         - 
           Actions:
-            - ActionTypeId:
+            - 
+              ActionTypeId:
                 Category: Deploy
                 Owner: AWS
                 Provider: CodeDeploy
@@ -425,27 +426,27 @@ Resources:
                 DeploymentGroupName: !Ref IntegrationTestsDeploymentGroup
               InputArtifacts:
                 - Name: AppSpecFile
-              Name: IntegrationTestsResourcesDeployment
+              Name: ResourcesDeployment
               Namespace: IntegrationTestsPreparation
-          Name: EquationSolverIntegrationTests
-        -
-          Actions:
-            - ActionTypeId:
+              RunOrder: 1
+            - 
+              ActionTypeId:
                 Category: Build
                 Owner: AWS
                 Provider: CodeBuild
                 Version: "1"
               Configuration:
-                ProjectName: !Ref EqnSolverIntegrationTests
+                ProjectName: !Ref IntegrationTestsRunner
                 PrimarySource: SourceArtifact
               InputArtifacts:
                 - Name: SourceArtifact
                 - Name: EqnSolverSourceCode
-              Name: EquationSolverIntegrationTestsAction
-              Namespace: EquationSolverIntegrationTestsRunner
+              Name: IntegrationTestsRunner
+              Namespace: IntegrationTestsRunner
               OutputArtifacts:
                 - Name: ProductionAppSpecFile 
-          Name: EquationSolverIntegrationTestsStage
+              RunOrder: 2
+          Name: IntegrationTests
         - 
           Actions:
             - ActionTypeId:
@@ -458,10 +459,10 @@ Resources:
                 DeploymentGroupName: !Ref ProductionResourcesDeploymentGroup
               InputArtifacts:
                 - Name: ProductionAppSpecFile
-              Name: ProductionResourcesDeploymentAction
+              Name: ProdEnvResourcesDeploymentAction
               Namespace: ProductionPreparation
               # RoleArn: "String"
-          Name: EquationSolverProdResourceDeploymentStage
+          Name: ProdEnvResourcesDeploymentStage
       Tags: 
         - Key: Project
           Value: EquationSolver
