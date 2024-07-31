@@ -135,14 +135,6 @@ Resources:
           Status: ENABLED
           StreamName: eqn-solver-builder
       Name: EquationSolverImageBuilderProject
-      #ResourceAccessRole: "String"
-      SecondaryArtifacts:
-        -
-          ArtifactIdentifier: AppSpecFile
-          Location: !Ref S3ArtifactsStore
-          Name: "/"
-          Path: TestReports
-          Type: S3
       Source: 
         Type: CODEPIPELINE
       ServiceRole: !GetAtt EqnSolverImageBuilderRole.Outputs.EqnSolverImageBuilderRole
@@ -191,6 +183,38 @@ Resources:
         BuildSpec: "integration_tests_buildspec.yaml"
       ServiceRole: !GetAtt EqnSolverImageBuilderRole.Outputs.EqnSolverImageBuilderRole
       Visibility: PRIVATE
+
+  IntegrationTestsReport:
+    Type: AWS::CodeBuild::ReportGroup
+    Properties:
+      DeleteReports: False
+      ExportConfig:
+        ExportConfigType: S3
+        S3Destination:
+          Bucket: !Ref S3ArtifactsStore
+          Packaging: NONE
+          Path: Reports
+      Name: EquationSolverIntegrationTestsProject-IntegrationTests
+      Tags: 
+        - Key: Project
+          Value: EquationSolver
+      Type: TEST # Required
+
+  UnitTestsReport:
+    Type: AWS::CodeBuild::ReportGroup
+    Properties:
+      DeleteReports: False
+      ExportConfig:
+        ExportConfigType: S3
+        S3Destination:
+          Bucket: !Ref S3ArtifactsStore
+          Packaging: NONE
+          Path: Reports
+      Name: EquationSolverImageBuilderProject-UnitTests
+      Tags: 
+        - Key: Project
+          Value: EquationSolver
+      Type: TEST # Required
 
   IntegrationTestsDeploymentApp:
     Type: AWS::CodeDeploy::Application
@@ -388,7 +412,6 @@ Resources:
               Namespace: EquationSolverBuilder
               OutputArtifacts:
                 - Name: AppSpecFile
-                - Name: TestReports
           Name: BuildEquationSolverImage
         - 
           Actions:
@@ -421,7 +444,7 @@ Resources:
               Name: EquationSolverIntegrationTestsAction
               Namespace: EquationSolverIntegrationTestsRunner
               OutputArtifacts:
-                - Name: ProductionAppSpecFile
+                - Name: ProductionAppSpecFile 
           Name: EquationSolverIntegrationTestsStage
         - 
           Actions:
