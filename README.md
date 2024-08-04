@@ -26,14 +26,14 @@ Create the following resources:
 
 ## Notes
 - AWS CodeDeploy cannot read the AppSpec.yml file from the input artifact [[1]](https://www.reddit.com/r/aws/comments/12f51k3/an_appspec_file_is_required_but_could_not_be/). The input artifact is the repository to build the Docker image. We used a "hack" to read it from the host that builds our Docker image via the secondary artifact of the buildspec.yml file,
-- We improved the process used to build our Docker image. We use a [multi-stage](https://docs.docker.com/language/java/run-tests/) process. This allows one stage to be used for running unit tests. We install every library we need at this stage. This includes git and OpenSSH, and our application, dependencies, and unit tests. The other stage is to build the Docker image that is eventually pushed to AWS ECR. The application is copied from the test stage into the production stage. This results in a much lighter image,
+- We improved the process to build our Docker image. We use a [multi-stage](https://docs.docker.com/language/java/run-tests/) process. This allows one stage to be used for running unit tests. We install every library we need at this stage. This includes git and OpenSSH, and our application, dependencies, and unit tests. The other stage is to build the Docker image that is eventually pushed to AWS ECR. The application is copied from the test stage into the production stage. This results in a much lighter image,
 - ~~The Configuration property of the CodePipeline action is poorly documented~~,
 - The integration between CodeBuild and CodeDeploy is not great for Lambda. There is really no need to specify the current and target versions of a Lambda function in the AppSpec file.       - Given an alias, we should be able to deduce the current version. Therefore, we should only ever need to specify one of these,
     - Moreover, if the target version is not specified then it should be assumed that we want to create a new version from the artifacts and associate it with the given alias,
 - We are using the CodeBuild [buildspec](https://github.com/MogomotsiFM/docker_equation_solver/commit/dc06c867eb99be264f520fcb1fbf7f16877f017a) file to update the function (lambda::UpdateFuntionCode) and publish a new version (lambda::PublishVersion). These functions could, we dare say, should be performed by CodeDeploy for Lambda deployments to improve integration,
 - Generating build reports is a bit hacky:
     - Create an *AWS::Build::Project* with an arbitrary name, say, **BuildDockerImage**,
-    - Create a *report* phase in the *buildspec.yaml* file and give it an arbitrary logical name, say, **UnitTests**,
+    - Add a *report* phase in the *buildspec.yaml* file and give it an arbitrary logical name, say, **UnitTests**,
     - Tie these two together by creating an *AWS::ReportGroup* and name it **BuildDockerImage**-**UnitTests**,
 - It would have been nice if there was a parameter in the report group to tie these together. 
 
