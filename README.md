@@ -17,7 +17,8 @@ a CodePipeline that has the following resources:
 - AWS CodeDeploy
   - To deploy a production Lambda function using a canary deployment strategy,
   - ~~To deploy an API Gateway production stage~~,
-  - Add alarms that can trigger rollback in case of failures.
+  - Add alarms that can trigger rollback in case of failures,
+      - Test the effectiveness of this alarm: *aws cloudwatch set-alarm-state --alarm-name myalarm --state-value ALARM --state-reason testing-purposes*.     
 
 ## Prerequisites
 Create the following resources:
